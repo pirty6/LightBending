@@ -1,0 +1,27 @@
+.swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.row-sequence {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    flex-wrap: wrap;
+}
+
+.icons-buttons {
+    margin-right: 10px;
+}
+
+.frame {
+    width: 10px;
+    height: 10px;
+    border: solid 1px black;
+}
+
+.active-frame {
+    background-color:blue;
+}
