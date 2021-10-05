@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import {  } from '@fluentui/font-icons-mdl2';
 import '../styles/sequences.css';
 
 const numberOfLEDs = 60;
 const buttons = ["#141414", "#333333", "#525252", "#7a7a7a", '#FFFFFF'];
+const pad = [3, 3];
+const url = "/json/sequences";
 
 const Sequences = () => {
     const [sequence, setSequence] = useState([]);
@@ -13,11 +14,15 @@ const Sequences = () => {
     const [LEDStripArray, setLEDStripArray] = useState(new Array(numberOfLEDs).fill('#FFFFFF'));
     const [currentColor, setCurrentColor] = useState(undefined);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [currentPadButton, setCurrentPadButton] = useState([0, 0]);
+    const [padConfiguration, setPadConfiguration] = useState([...Array(pad[0])].map((x =>[...Array(pad[1])])));
 
     useEffect(() => {
-        console.log('entro')
+        fetchFile();
+    }, []);
+
+    useEffect(() => {
         if(isPlaying) {
-            console.log('playing')
             setTimeout(() => {
                 let newCurrentSequenceIndex = currentSequenceIndex + 1;
                 if(newCurrentSequenceIndex >= sequence.length) {
@@ -30,6 +35,22 @@ const Sequences = () => {
         }
     }, [isPlaying, currentSequenceIndex, sequence]);
 
+    const fetchFile = () => {
+        fetch(url)
+          .then(function (response) {
+            if (response.status !== 200) {
+              throw response.status;
+            }
+            return response.text();
+          })
+          .then(function (fileContent) {
+            setPadConfiguration(JSON.parse(fileContent));
+          })
+          .catch(function (status) {
+            console.log("Error " + status);
+          });
+      };
+
 
     const drawLEDStrip = () => {
         if(LEDStripArray === undefined) {
@@ -39,6 +60,7 @@ const Sequences = () => {
         return (
             LEDStripArray.map((LED, i) => (
                 <div
+                // TODO: Right click delete color
                 onClick={() => changeColor(i)} 
                 style={{
                     backgroundColor:LED === '#FFFFFF' && prevLEDStripArray !== undefined  && prevLEDStripArray[i] !== '#FFFFFF' ? getPrevColor(prevLEDStripArray[i]) : LED,
@@ -104,6 +126,68 @@ const Sequences = () => {
         setIsPlaying(false);
     }
 
+    const saveFrame = () => {
+        if(currentSequenceIndex >= sequence.length) {
+            sequence.push(LEDStripArray);
+        } else {
+            const newSequence = [...sequence];
+            newSequence[currentSequenceIndex] = LEDStripArray;
+            setSequence(newSequence);
+        }
+    }
+
+    const drawPad = () => {
+        return padConfiguration.map((row, i) => (
+            <div style={{display:'flex'}}>
+                {
+                    row.map((_, j) => (
+                        <div 
+                        style={{height:'40px', width:'40px', border: '1px solid black'}} 
+                        className={i * pad[0] + j === currentPadButton[0] * pad[0] + currentPadButton[1] && 'active-frame'}
+                        onClick={() => setPadIndexConfiguration(i, j)}></div>
+                    ))
+                }
+            </div>
+        ))
+    }
+
+    const setPadIndexConfiguration = (i, j) => {
+        const newConfiguration = [...padConfiguration];
+        newConfiguration[currentPadButton[0]][currentPadButton[1]] = sequence;
+        setPadConfiguration(newConfiguration);
+
+        setCurrentPadButton([i, j]);
+
+        if(padConfiguration[i][j] === undefined) {
+            setSequence([]);
+            setLEDStripArray(new Array(numberOfLEDs).fill('#FFFFFF'));
+        } else {
+            setSequence(padConfiguration[i][j]);
+            setLEDStripArray(padConfiguration[i][j][0]);
+        }
+        setPrevLEDStripArray(undefined);
+    }
+
+    const saveAll = () => {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ padConfiguration: padConfiguration })
+          })
+        .then(function (response) {
+            if (response.status !== 200) { 
+            throw response.status;
+            }
+            alert("Changes saved");
+            fetchFile();
+        })
+        .catch(function (status) {
+            console.log("Error " + status);
+        });
+    }
+
     return (
         <Container>
             <Row>
@@ -135,6 +219,12 @@ const Sequences = () => {
                         <Button className='icons-buttons' onClick={() => nextFrame()}><i className="ms-Icon ms-Icon--Forward"></i></Button>
                         <Button className='icons-buttons' onClick={() => play()}><i className="ms-Icon ms-Icon--Play"></i></Button>
                         <Button className='icons-buttons' onClick={() => pause()}><i className="ms-Icon ms-Icon--Pause"></i></Button>
+                        <Button className='icons-buttons' onClick={() => {saveFrame()}}><i className="ms-Icon ms-Icon--Save"></i></Button>
+                        <Button className='icons-buttons' onClick={() => {saveAll()}}>Save All</Button>
+                        <Button className='icons-buttons' onClick={() => {saveFrame()}}>Export</Button>
+                    </div>
+                    <div>
+                            {drawPad()}
                     </div>
                 </Col>
             </Row>
