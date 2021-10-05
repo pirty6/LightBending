@@ -1,23 +1,21 @@
 #include <FastLED.h>
 #include <Keypad.h>
 
-// --------- CONFIGURABLE SETTINGS ---------
-// PIN MAPPINGS                                  //
-#define LED_PIN     11              // PIN for the LED Strip                          
-#define LED_PIN_INDICATOR  10       // PIN for the LED indicator (small preview)
+// --------- BEGIN CONFIGURABLE SETTINGS ---------
+// PIN MAPPINGS                             
+#define LED_PIN 11                // PIN for the LED Strip
+#define LED_PIN_INDICATOR 10      // PIN for the LED indicator (small preview)
 
-#define POT_PIN_01  A5              // PIN used to control the brightness
-#define POT_PIN_02  A4              // PIN used to control the speed
+#define BRIGHTNESS_PIN A5         // PIN used to control the brightness
+#define SPEED_PIN A4              // PIN used to control the speed
 
-#define EFFECT_PIN_01 A0                         
-#define EFFECT_PIN_02 A1                         
-#define EFFECT_PIN_03 A2                         
-#define EFFECT_PIN_04 A3                         
+#define EFFECT_PIN_01 A0
+#define EFFECT_PIN_02 A1
+#define EFFECT_PIN_03 A2
+#define EFFECT_PIN_04 A3
 
-const int knockSensor = A0; // the piezo is connected to analog pin 0
-
-#define PING_PIN    13                           
-#define ECHO_PIN    12                           
+#define TRIG_PIN 13               // PIN used for the trig side sonar sensor
+#define ECHO_PIN 12               // PIN used for the echo side of the sonar sensor
 
 // CONSTANTS
 #define DISPLAY_INDICATOR true    // States if the indicator is connected and if we want to use it
@@ -25,36 +23,35 @@ const int knockSensor = A0; // the piezo is connected to analog pin 0
 #define PING_MIN_RANGE 0                         
 #define PING_MAX_RANGE 7                         
 
-#define LED_MIN_SPEED 5           // Minimum speed that the LED can use               
-#define LED_MAX_SPEED 45          // Maximum speed that the LED can use (use in seconds??)                      
+#define LED_MIN_SPEED 5                          
+#define LED_MAX_SPEED 45                        
+                                     
+#define NUM_LED 60                 // Number of LED that the strip has                                               
+#define NUM_LED_INDICATOR 6        // Number of LED that the indicator has
+#define LED_TYPE WS2811                       
+#define COLOR_ORDER GRB                         
 
-#define NUM_LED    60             // Number of LED that the strip has
-#define NUM_LED_INDICATOR         // Number of LED that the indicator has
-#define LED_TYPE    WS2811                       
-#define COLOR_ORDER GRB                          
-
-const byte ROWS = 4;              // Number of rows that are in the control pad
-const byte COLUMNS = 4;           // Number of columns that are in the control pad
-
-// ---------- END CONFIGURABLE SETTINGS ----------
+const byte PAD_ROWS = 4;           // Number of rows that are in the control pad
+const byte PAD_COLUMNS = 4;        // Number of columns that are in the control pad
 
 //Declaration of the key of the keypad
-char hexKeys[ROWS][COLUMNS] =
+char hexKeys[PAD_ROWS][PAD_COLUMNS] =
 {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},
   {'7', '8', '9', 'C'},
   {'0', 'F', 'E', 'D'}
 };
+//Assignement of pin for the keypad
+byte rows_pin[PAD_ROWS] = {2, 3, 4, 5};
+byte columns_pin[PAD_COLUMNS] = {6, 7, 8, 9};
 
-//Assignment of pin for the keypad
-byte line_pin[ROWS] = {2, 3, 4, 5};
-byte column_pin[COLUMNS] = {6, 7, 8, 9};
-
-Keypad clavier = Keypad( makeKeymap(hexKeys), line_pin, column_pin, ROWS, COLUMNS); // creation of object keypad
+Keypad clavier = Keypad( makeKeymap(hexKeys), rows_pin, columns_pin, PAD_ROWS, PAD_COLUMNS); // creation of object keypad
+//                                               //
+// ---------- END CONFIGURABLE SETTINGS ----------
 
 // Define color offsets
-// Basically we are taking the 16 color palette and reducing it to 4
+// Basically we are taking the 16 color pallete and reducing it to 4
 #define COLOR_01 0
 #define COLOR_02 16
 #define COLOR_03 32
@@ -93,6 +90,8 @@ bool btn_23_status = false;
 
 int sensorReading = 0;
 
+// BEGIN CODE
+
 void setup() {
   //Initialize LED Strip
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LED).setCorrection( TypicalLEDStrip );
@@ -104,7 +103,7 @@ void setup() {
   FastLED.setBrightness(led_brightness);
  
   //Set pin modes
-  pinMode(PING_PIN, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(EFFECT_PIN_01, INPUT);
   pinMode(EFFECT_PIN_02, INPUT);
@@ -315,8 +314,8 @@ void loop()
   */
 
   // Update variables from potentiometers
-  led_brightness = map(analogRead(POT_PIN_01), 0, 1023, 0, 255);
-  led_speed = map(log(analogRead(POT_PIN_02)) * 147, 0, 1023, 1000 / LED_MIN_SPEED, 1000 / LED_MAX_SPEED);
+  led_brightness = map(analogRead(BRIGHTNESS_PIN), 0, 1023, 0, 255);
+  led_speed = map(log(analogRead(SPEED_PIN)) * 147, 0, 1023, 1000 / LED_MIN_SPEED, 1000 / LED_MAX_SPEED);
 
   // Visualizers:
   // runVisualFlow();
@@ -495,54 +494,6 @@ void runEffectSplit() {
 
 // ---------- BEGIN VISUALIZERS ----------
 
-// Turns on leds corresponding to the sound level compared to the last AUDIO_UPDATE_FREQ millisecond period
-void runVisualSound() {
-  //Serial.println("VISUAL SOUND");
-
-  //sensorReading = analogRead(knockSensor);
-  //Serial.println(sensorReading);
-
-  long soundLevel_00 = 0;
-  static long soundLevel_01 = 0;
-  static long soundLevel_02 = 0;
-  static long soundLevel_03 = 0;
-  static long soundLevel_04 = 0;
-
-  // Get current sound level
-  for (int i = 0; i < 32; i++)
-  {
-    // soundLevel_00 += analogRead(pinAdc);
-    //soundLevel_00 += analogRead(knockSensor);x
-  }
-  soundLevel_00 = analogRead(knockSensor);
-  //Serial.println(soundLevel_00);
-
-  //soundLevel_00 >>= 5;
-
-  long aveSound = (soundLevel_00 + soundLevel_01 + soundLevel_02) / 3;
-  //Serial.print("Current Sound: ");
-  //Serial.print(soundLevel_00);
-  //Serial.print(" Averaged Sound: ");
-  //Serial.println(aveSound);
-
-  // Map sound level to a value 0 to NUM_LED based on long term min/max
-  uint8_t ledRange = map(aveSound, 0, 140, 1, NUM_LED / 2);
-  Serial.println(ledRange);
-  // Light LEDs based on the sound level
-  for ( int i = 0; i < NUM_LED; i++) {
-    if (abs(i - NUM_LED / 2) < ledRange) {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-    } else {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-    }
-  }
-  soundLevel_04 = soundLevel_03;
-  soundLevel_03 = soundLevel_02;
-  soundLevel_02 = soundLevel_01;
-  soundLevel_01 = soundLevel_00;
-
-}
-
 void runVisualPulse() {
 
   // Create static var to hand current position
@@ -656,11 +607,11 @@ void runVisualFlow() {
 
 void runVisualPingFlow() {
 
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
-  digitalWrite(PING_PIN, HIGH);
+  digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   long inches = pulseIn(ECHO_PIN, HIGH) / 74 / 2;
 
   // Translate distance to a value in the ping control range
@@ -1102,11 +1053,11 @@ void runVisualPong() {
   static uint8_t start_position = 0;
   static bool move_direction = true;
 
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
-  digitalWrite(PING_PIN, HIGH);
+  digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   long inches = pulseIn(ECHO_PIN, HIGH) / 74 / 2;
   Serial.print("Distance: ");
   Serial.println(inches);
@@ -1184,11 +1135,11 @@ void runVisualSegments() {
 
 // Sets the "base" color to palette color 4 and lights up all LEDs lower than the ping distance to the "primary" color 1
 void runVisualPing() {
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
-  digitalWrite(PING_PIN, HIGH);
+  digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   long inches = pulseIn(ECHO_PIN, HIGH) / 74 / 2;
   Serial.print("Distance: ");
   Serial.println(inches);
@@ -1219,11 +1170,11 @@ void runVisualPing() {
 }
 // Sets the "base" color to palette color 4 and lights up all LEDs lower than the ping distance to the "primary" color 1
 void runVisualPingCenter() {
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
-  digitalWrite(PING_PIN, HIGH);
+  digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   long inches = pulseIn(ECHO_PIN, HIGH) / 74 / 2;
   Serial.print("Distance: ");
   Serial.println(inches);
@@ -1262,11 +1213,11 @@ void runVisualPingCenter() {
 
 // Sets the "base" color to palette color 4 and light up 5 LEDs around the location of the
 void runVisualPingBlob() {
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
-  digitalWrite(PING_PIN, HIGH);
+  digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(PING_PIN, LOW);
+  digitalWrite(TRIG_PIN, LOW);
   long inches = pulseIn(ECHO_PIN, HIGH) / 74 / 2;
   Serial.print("Distance: ");
   Serial.println(inches);
