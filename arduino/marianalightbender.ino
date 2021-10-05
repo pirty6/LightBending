@@ -88,7 +88,7 @@ void setup() {
   pinMode(EFFECT_PIN_03, INPUT);
   pinMode(EFFECT_PIN_04, INPUT);
 
-  // Initialize pallete to gray
+  // Initialize palette to gray
   currentPalette = CRGBPalette16(
                      CRGB(100, 100, 100), CRGB(100, 100, 100), CRGB(100, 100, 100), CRGB(100, 100, 100),
                      CRGB(100, 100, 100), CRGB(100, 100, 100), CRGB(100, 100, 100), CRGB(100, 100, 100),
@@ -113,7 +113,7 @@ void loop() {
     case '7':
     case '8':
     case '9':
-      visual = (int)key;
+      visual = (int)key - '0';
       break;
     // Palettes go from A to F
     case 'A':
@@ -122,10 +122,8 @@ void loop() {
     case 'D':
     case 'E':
     case 'F':
-      palette = (int)key - 65;
+      palette = (int)key - 'A';
       break;
-    default:
-      continue;
   }
 
   if (digitalRead(EFFECT_PIN_01) == HIGH) {
