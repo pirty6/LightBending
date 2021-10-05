@@ -34,7 +34,7 @@
 const byte PAD_ROWS = 4;           // Number of rows that are in the control pad
 const byte PAD_COLUMNS = 4;        // Number of columns that are in the control pad
 
-//Declaration of the key of the keypad
+// Define keypad keys
 char hexKeys[PAD_ROWS][PAD_COLUMNS] =
 {
   {'1', '2', '3', 'A'},
@@ -42,65 +42,43 @@ char hexKeys[PAD_ROWS][PAD_COLUMNS] =
   {'7', '8', '9', 'C'},
   {'0', 'F', 'E', 'D'}
 };
-//Assignement of pin for the keypad
+
+// Assignment of pin for the keypad
 byte rows_pin[PAD_ROWS] = {2, 3, 4, 5};
 byte columns_pin[PAD_COLUMNS] = {6, 7, 8, 9};
 
 Keypad clavier = Keypad( makeKeymap(hexKeys), rows_pin, columns_pin, PAD_ROWS, PAD_COLUMNS); // creation of object keypad
-//                                               //
+
 // ---------- END CONFIGURABLE SETTINGS ----------
 
 // Define color offsets
-// Basically we are taking the 16 color pallete and reducing it to 4
 #define COLOR_01 0
 #define COLOR_02 16
 #define COLOR_03 32
 #define COLOR_04 48
 
 // GLOBAL VARIABLES
-
-CRGB leds[NUM_LED];
-CRGB leds_indicator[NUM_LED_INDICATOR];
+CRGB ledArray[NUM_LED];
+CRGB ledIndicatorArray[NUM_LED_INDICATOR];
 CRGBPalette16 currentPalette;
-uint8_t led_brightness = 100; // Default only, will be overwritten
-float led_speed = 10;       // Default only, will be overwritten
+uint8_t ledBrightness = 100; // Default only, will be overwritten
+float ledSpeed = 10;       // Default only, will be overwritten
 uint8_t visual = 1;
 uint8_t palette = 0;
 uint8_t effect = 0;
 long update_time = millis();
 
-bool btn_01_status = false;
-bool btn_02_status = false;
-bool btn_03_status = false;
-bool btn_04_status = false;
-bool btn_05_status = false;
-bool btn_06_status = false;
-bool btn_07_status = false;
-bool btn_08_status = false;
-bool btn_09_status = false;
-bool btn_10_status = false;
-bool btn_11_status = false;
-bool btn_12_status = false;
-bool btn_13_status = false;
-
-bool btn_20_status = false;
-bool btn_21_status = false;
-bool btn_22_status = false;
-bool btn_23_status = false;
-
-int sensorReading = 0;
-
 // BEGIN CODE
 
 void setup() {
   //Initialize LED Strip
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LED).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(ledArray, NUM_LED).setCorrection( TypicalLEDStrip );
 
-  if(DISPLAY_INDICATOR == true){
-   FastLED.addLeds<LED_TYPE, LED_PIN_INDICATOR, COLOR_ORDER>(leds_indicator, NUM_LED_INDICATOR).setCorrection( TypicalLEDStrip );
+  if(DISPLAY_INDICATOR){
+   FastLED.addLeds<LED_TYPE, LED_PIN_INDICATOR, COLOR_ORDER>(ledIndicatorArray, NUM_LED_INDICATOR).setCorrection( TypicalLEDStrip );
   }
 
-  FastLED.setBrightness(led_brightness);
+  FastLED.setBrightness(ledBrightness);
  
   //Set pin modes
   pinMode(TRIG_PIN, OUTPUT);
@@ -120,217 +98,56 @@ void setup() {
   Serial.begin(9600);
 }
 
-void loop()
-{
+void loop() {
   char key = clavier.getKey();
-  // Handle button presses
-  if (key != 0x00) // if there is not any key, function getKey send NULL character (0x00)
-  {
-    Serial.print("Key: ");
-    Serial.println(key);
-    // Visualizers
-    if (key == '1') {
-      if (btn_01_status == false) {
-        btn_01_status = true;
-        visual = 1;
-      }
-    } else {
-      btn_01_status = false;
-    }
-    if (key == '2') {
-      if (btn_02_status == false) {
-        btn_02_status = true;
-        visual = 2;
-      }
-    } else {
-      btn_02_status = false;
-    }
-    if (key == '3') {
-      if (btn_03_status == false) {
-        btn_03_status = true;
-        visual = 3;
-      }
-    } else {
-      btn_03_status = false;
-    }
-    if (key == '4') {
-      if (btn_04_status == false) {
-        btn_04_status = true;
-        visual = 4;
-      }
-    } else {
-      btn_04_status = false;
-    }
-    if (key == '5') {
-      if (btn_05_status == false) {
-        btn_05_status = true;
-        visual = 5;
-      }
-    } else {
-      btn_05_status = false;
-    }
-    if (key == '6') {
-      if (btn_06_status == false) {
-        btn_06_status = true;
-        visual = 6;
-      }
-    } else {
-      btn_06_status = false;
-    }
-    if (key == '7') {
-      if (btn_07_status == false) {
-        btn_07_status = true;
-        visual = 7;
-      }
-    } else {
-      btn_07_status = false;
-    }
-    if (key == '8') {
-      if (btn_08_status == false) {
-        btn_08_status = true;
-        visual = 8;
-      }
-    } else {
-      btn_08_status = false;
-    }
-    if (key == '9') {
-      if (btn_09_status == false) {
-        btn_09_status = true;
-        visual = 9;
-      }
-    } else {
-      btn_09_status = false;
-    }
-    // Palettes
-    if (key == '0') {
-      if (btn_10_status == false) {
-        btn_10_status = true;
-        visual = 10;
-      }
-    } else {
-      btn_10_status = false;
-    }
-
-    if (key == 'F') {
-      if (btn_11_status == false) {
-        btn_11_status = true;
-        palette = 1;
-      }
-    } else {
-      btn_11_status = false;
-    }
-
-    if (key == 'E') {
-      if (btn_12_status == false) {
-        btn_12_status = true;
-        palette = 2;
-      }
-    } else {
-      btn_12_status = false;
-    }
-
-    if (key == 'D') {
-      if (btn_12_status == false) {
-        btn_12_status = true;
-        palette = 3;
-      }
-    } else {
-      btn_12_status = false;
-    }
-
-    if (key == 'A') {
-      if (btn_12_status == false) {
-        btn_12_status = true;
-        palette = 4;
-      }
-    } else {
-      btn_12_status = false;
-    }
-
-    if (key == 'B') {
-      if (btn_12_status == false) {
-        btn_12_status = true;
-        palette = 5;
-      }
-    } else {
-      btn_12_status = false;
-    }
-    if (key == 'C') {
-      if (btn_13_status == false) {
-        btn_13_status = true;
-        palette = 6;
-      }
-    } else {
-      btn_13_status = false;
-    }
+  // if there is not any key, function getKey send NULL character (0x00)
+  switch(key) {
+    // Visualizers go from 0 to 9
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      visual = (int)key;
+      break;
+    // Palettes go from A to F
+    case 'A':
+    case 'B':
+    case 'C':
+    case 'D':
+    case 'E':
+    case 'F':
+      palette = (int)key - 65;
+      break;
+    default:
+      continue;
   }
-
-
 
   if (digitalRead(EFFECT_PIN_01) == HIGH) {
-    if (btn_20_status == false) {
-      btn_20_status = true;
-      effect = 1;
-    }
-  } else {
-    btn_20_status = false;
+    effect = 1;
   }
   if (digitalRead(EFFECT_PIN_02) == HIGH) {
-    if (btn_21_status == false) {
-      btn_21_status = true;
-      effect = 2;
-    }
-  } else {
-    btn_21_status = false;
+    effect = 2;
   }
   if (digitalRead(EFFECT_PIN_03) == HIGH) {
-    if (btn_22_status == false) {
-      btn_22_status = true;
-      effect = 0;
-    }
-  } else {
-    btn_22_status = false;
+    effect = 0;
   }
   if (digitalRead(EFFECT_PIN_04) == HIGH) {
-    if (btn_23_status == false) {
-      btn_23_status = true;
-      if (effect == 4) {
-        effect = 0;
-      } else {
-        effect = 4;
-      }
-
-    }
-  } else {
-    btn_23_status = false;
+    effect = effect == 4 ? 0 : 4;
   }
-  //Serial.print("Effect: ");
-  //Serial.println(effect);
-  /*
-    Serial.print("Visual: ");
-    Serial.print(visual);
-    Serial.print(" Palette: ");
-    Serial.println(palette);
-  */
 
   // Update variables from potentiometers
-  led_brightness = map(analogRead(BRIGHTNESS_PIN), 0, 1023, 0, 255);
-  led_speed = map(log(analogRead(SPEED_PIN)) * 147, 0, 1023, 1000 / LED_MIN_SPEED, 1000 / LED_MAX_SPEED);
-
-  // Visualizers:
-  // runVisualFlow();
-  // runVisualCenterFlow();
-  // runVisualPing();
-  // runVisualPingBlob();
-  // runVisualBounce();
-  // runVisualDoubleBounce();
-  // runVisualSegments();
-  // runVisualSound();
-  // runVisualDoubleSpot();
+  ledBrightness = map(analogRead(BRIGHTNESS_PIN), 0, 1023, 0, 255);
+  ledSpeed = map(log(analogRead(SPEED_PIN)) * 147, 0, 1023, 1000 / LED_MIN_SPEED, 1000 / LED_MAX_SPEED);
 
   // Run visual based on visual id number
   // ---------- CHANGE THESE TO CHANGE SELECTED VISUALIZATION ----------
-  if (update_time + led_speed < millis() && effect == 0) {
+  if (update_time + ledSpeed < millis() && effect == 0) {
     update_time = millis();
     switch (visual) {
       case 1:
@@ -360,7 +177,7 @@ void loop()
       case 9:
         runVisualSegments();
         break;
-      case 10:
+      case 0:
         runVisualPulse();
         break;
       default:
@@ -368,7 +185,7 @@ void loop()
         break;
     }
   }
-  if (update_time + led_speed < millis() && effect != 0) {
+  if (update_time + ledSpeed < millis() && effect != 0) {
     update_time = millis();
     switch (effect) {
       case 1:
@@ -377,23 +194,11 @@ void loop()
       case 2:
         runEffectSplit();
         break;
-      case 3:
-
-        break;
-      case 4:
-        // Do not use. Effect 4 is a pause configured in the button management section
+      default:
         break;
     }
-
   }
 
-  // Palettes:
-  // setPaletteFire(),
-  // setPaletteSynth(),
-  // setPaletteParty(),
-  // setPaletteBlackWhite()
-
-  // Map Palettes to visual id number
   // ---------- CHANGE THESE TO CHANGE SELECTED PALETTES ----------
   switch (palette) {
     case 1:
@@ -414,10 +219,6 @@ void loop()
     case 6:
       setReggaePalette();
       break;
-  /*  case 7:
-      setCustom();
-      break;
-      */
     default:
       break;
   }
@@ -433,7 +234,7 @@ void runEffectStrobe() {
   if (current_step++ < 16 ) {
     // The effect logic goes here
     for ( int i = 0; i < NUM_LED; i += 1) {
-      leds[i] = ColorFromPalette( currentPalette, (current_step * 16) % 64, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, (current_step * 16) % 64, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
     }
   } else {
     effect = 0;
@@ -465,28 +266,28 @@ void runEffectSplit() {
   for ( int i = 0; i < NUM_LED; i += 1) {
     // Added a bit of randomness to make it less static looking
     // Mostly makes it flash a bit
-    leds[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 5), constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+    ledArray[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 5), constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
   }
 
   // Set lead LED to primary color
-  leds[start_position_1] = ColorFromPalette( currentPalette, COLOR_01, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
-  leds[start_position_2] = ColorFromPalette( currentPalette, COLOR_01, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+  ledArray[start_position_1] = ColorFromPalette( currentPalette, COLOR_01, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+  ledArray[start_position_2] = ColorFromPalette( currentPalette, COLOR_01, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
 
   // Set first trailer LED
   if (start_position_1 - 1 > 0) {
-    leds[start_position_1 - 1] = ColorFromPalette( currentPalette, COLOR_02, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+    ledArray[start_position_1 - 1] = ColorFromPalette( currentPalette, COLOR_02, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
   }
   if (start_position_2 - 1 > 0) {
-    leds[start_position_2 - 1] = ColorFromPalette( currentPalette, COLOR_02, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+    ledArray[start_position_2 - 1] = ColorFromPalette( currentPalette, COLOR_02, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
   }
 
   // Set the second trailer LED
 
   if (start_position_1 - 2 > 0) {
-    leds[start_position_1 - 2] = ColorFromPalette( currentPalette, COLOR_03, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+    ledArray[start_position_1 - 2] = ColorFromPalette( currentPalette, COLOR_03, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
   }
   if (start_position_2 - 2 > 0) {
-    leds[start_position_2 - 2] = ColorFromPalette( currentPalette, COLOR_03, constrain(led_brightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
+    ledArray[start_position_2 - 2] = ColorFromPalette( currentPalette, COLOR_03, constrain(ledBrightness * (5.0 / 3.0), 0, 255), LINEARBLEND);
   }
 }
 
@@ -547,11 +348,11 @@ void runVisualPulse() {
   for ( int i = 0; i < NUM_LED; i += 1) {
 
     if (start_position_1 < i && i < start_position_2) {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_01 + random(-8, 8), led_brightness, LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_01 + random(-8, 8), ledBrightness, LINEARBLEND);
     } else if (start_position_1 > i && i > start_position_2) {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_02 + random(-8, 8), led_brightness, LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_02 + random(-8, 8), ledBrightness, LINEARBLEND);
     } else {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 2), led_brightness - (led_brightness / 4), LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 2), ledBrightness - (ledBrightness / 4), LINEARBLEND);
     }
 
   }
@@ -560,11 +361,11 @@ void runVisualPulse() {
   for ( int i = 0; i < NUM_LED_INDICATOR; i += 1) {
 
     if (start_position_indicator_1 < i && i < start_position_indicator_2) {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_01 + random(-8, 8), led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_01 + random(-8, 8), ledBrightness, LINEARBLEND);
     } else if (start_position_indicator_1 > i && i > start_position_indicator_2) {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_02 + random(-8, 8), led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_02 + random(-8, 8), ledBrightness, LINEARBLEND);
     } else {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 2), led_brightness - (led_brightness / 4), LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 2), ledBrightness - (ledBrightness / 4), LINEARBLEND);
     }
 
   }
@@ -586,20 +387,20 @@ void runVisualFlow() {
   // The visualizer logic goes here
   int j = 0;
   for ( int i = 0; i < NUM_LED; i += 7) {
-    leds[getSafeIndex(i + start_position)] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 1)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 2)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 3)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 4)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 5)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 6)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position)] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 1)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 2)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 3)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 4)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 5)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 6)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     if(DISPLAY_INDICATOR == true) {
-      leds_indicator[(j + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_01 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 1 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 2 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 3 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 4 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 5 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_04 , led_brightness, LINEARBLEND);
+      ledIndicatorArray[(j + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_01 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 1 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 2 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 3 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 4 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 5 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_04 , ledBrightness, LINEARBLEND);
       j += 1;
     }
   }
@@ -633,20 +434,20 @@ void runVisualPingFlow() {
 
   // The visualizer logic goes here
   for ( int i = 0; i < ledRange; i += 1) {
-    leds[constrain(i, 0, ledRange)] = ColorFromPalette( currentPalette, current_color, led_brightness, LINEARBLEND);
+    ledArray[constrain(i, 0, ledRange)] = ColorFromPalette( currentPalette, current_color, ledBrightness, LINEARBLEND);
     current_color += 8;
   }
   for ( int i = 0; i < ledRange_indicator; i += 1) {
-    leds_indicator[constrain(i, 0, ledRange_indicator)] = ColorFromPalette( currentPalette, current_color, led_brightness, LINEARBLEND);
+    ledIndicatorArray[constrain(i, 0, ledRange_indicator)] = ColorFromPalette( currentPalette, current_color, ledBrightness, LINEARBLEND);
     current_color += 8;
   }
   current_color = start_color;
   for ( int i = ledRange; i < NUM_LED; i += 1) {
-    leds[i] = ColorFromPalette( currentPalette, current_color, led_brightness, LINEARBLEND);
+    ledArray[i] = ColorFromPalette( currentPalette, current_color, ledBrightness, LINEARBLEND);
     current_color -= 8;
   }
   for ( int i = ledRange_indicator; i < NUM_LED_INDICATOR; i += 1) {
-    leds_indicator[i] = ColorFromPalette( currentPalette, current_color, led_brightness, LINEARBLEND);
+    ledIndicatorArray[i] = ColorFromPalette( currentPalette, current_color, ledBrightness, LINEARBLEND);
     current_color -= 8;
   }
   start_color += 16;
@@ -669,21 +470,21 @@ void runVisualReverseFlow() {
   int j = 0;
   // The visualizer logic goes here
   for ( int i = 0; i < NUM_LED; i += 7) {
-    leds[getSafeIndex(i + start_position)] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 1)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 2)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 3)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 4)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 5)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_position + 6)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position)] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 1)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 2)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 3)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 4)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 5)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_position + 6)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
 
     if(DISPLAY_INDICATOR == true) {
-      leds_indicator[(j + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_01 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 1 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 2 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 3 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 4 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , led_brightness, LINEARBLEND);
-      leds_indicator[(j + 5 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_04 , led_brightness, LINEARBLEND);
+      ledIndicatorArray[(j + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_01 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 1 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 2 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 3 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 4 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , ledBrightness, LINEARBLEND);
+      ledIndicatorArray[(j + 5 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_04 , ledBrightness, LINEARBLEND);
       j += 1;
     }
   }
@@ -710,23 +511,23 @@ void runVisualCenterFlow() {
 
   // The visualizer logic goes here
   for ( int i = 0; i < NUM_LED / 2; i += 7) {
-    leds[getSafeIndexFirstHalf(i + start_position_01)] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-    leds[getSafeIndexFirstHalf(i + start_position_01 + 1)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndexFirstHalf(i + start_position_01 + 2)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndexFirstHalf(i + start_position_01 + 3)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndexFirstHalf(i + start_position_01 + 4)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndexFirstHalf(i + start_position_01 + 5)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-    leds[getSafeIndexFirstHalf(i + start_position_01 + 6)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01)] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01 + 1)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01 + 2)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01 + 3)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01 + 4)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01 + 5)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexFirstHalf(i + start_position_01 + 6)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
   }
   // The visualizer logic goes here
   for ( int i = NUM_LED / 2; i < NUM_LED; i += 7) {
-    leds[getSafeIndexSecondHalf(i + start_position_02)] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-    leds[getSafeIndexSecondHalf(i + start_position_02 + 1)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndexSecondHalf(i + start_position_02 + 2)] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
-    leds[getSafeIndexSecondHalf(i + start_position_02 + 3)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndexSecondHalf(i + start_position_02 + 4)] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
-    leds[getSafeIndexSecondHalf(i + start_position_02 + 5)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-    leds[getSafeIndexSecondHalf(i + start_position_02 + 6)] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02)] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02 + 1)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02 + 2)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02 + 3)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02 + 4)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02 + 5)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndexSecondHalf(i + start_position_02 + 6)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
   }
 }
 
@@ -741,9 +542,9 @@ void runVisualDoubleSpot() {
 
   // Shift the background between the palette colors smoothly
   for ( int i = 0; i < NUM_LED; i += 1) {
-    leds[i] = ColorFromPalette( currentPalette, current_color, led_brightness / 2, LINEARBLEND);
+    ledArray[i] = ColorFromPalette( currentPalette, current_color, ledBrightness / 2, LINEARBLEND);
     if(DISPLAY_INDICATOR == true) {
-      leds_indicator[i % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, current_color, led_brightness / 2, LINEARBLEND);
+      ledIndicatorArray[i % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, current_color, ledBrightness / 2, LINEARBLEND);
     }
   }
   current_color += 1;
@@ -763,49 +564,49 @@ void runVisualDoubleSpot() {
   switch (glow_step_01++) {
     case 0:
       glow_pos_01 = random(0, NUM_LED / 2 - 1); // Random location
-      leds[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       if(DISPLAY_INDICATOR) {
-       leds_indicator[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, complement_color, led_brightness / 2, LINEARBLEND); 
+       ledIndicatorArray[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, complement_color, ledBrightness / 2, LINEARBLEND); 
       }
       break;
     case 1:
-      leds[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
-      leds[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       if(DISPLAY_INDICATOR) {
-        leds_indicator[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-        leds_indicator[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
-        leds_indicator[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+        ledIndicatorArray[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+        ledIndicatorArray[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
+        ledIndicatorArray[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       }
       break;
     case 2:
-      leds[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_01 + 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
-      leds[constrain(glow_pos_01 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_01 - 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 + 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 - 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       if(DISPLAY_INDICATOR) {
-        leds_indicator[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-        leds_indicator[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-        leds_indicator[constrain((glow_pos_01 + 2) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
-        leds_indicator[constrain((glow_pos_01 - 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-        leds_indicator[constrain((glow_pos_01 - 2) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);  
+        ledIndicatorArray[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+        ledIndicatorArray[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+        ledIndicatorArray[constrain((glow_pos_01 + 2) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
+        ledIndicatorArray[constrain((glow_pos_01 - 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+        ledIndicatorArray[constrain((glow_pos_01 - 2) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);  
       }
       break;
     case 3:
-      leds[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
-      leds[constrain(glow_pos_01 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
+      ledArray[constrain(glow_pos_01 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       if(DISPLAY_INDICATOR) {
-        leds_indicator[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, led_brightness, LINEARBLEND);
-        leds[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
-        leds[constrain((glow_pos_01 - 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+        ledIndicatorArray[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, ledBrightness, LINEARBLEND);
+        ledArray[constrain((glow_pos_01 + 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
+        ledArray[constrain((glow_pos_01 - 1) % NUM_LED_INDICATOR, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       }
       break;
     case 4:
-      leds[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_01] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       if(DISPLAY_INDICATOR) {
-        leds_indicator[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, led_brightness / 2, LINEARBLEND);
+        ledIndicatorArray[glow_pos_01 % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, complement_color, ledBrightness / 2, LINEARBLEND);
       }
       glow_step_01 = 0;
       break;
@@ -813,27 +614,27 @@ void runVisualDoubleSpot() {
   switch (glow_step_02++) {
     case 0:
       glow_pos_02 = random(NUM_LED / 2 + 1, NUM_LED); // Random location
-      leds[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
       break;
     case 1:
-      leds[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
-      leds[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
       break;
     case 2:
-      leds[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_02 + 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
-      leds[constrain(glow_pos_02 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_02 - 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 + 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 - 2, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
       break;
     case 3:
-      leds[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness, LINEARBLEND);
-      leds[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
-      leds[constrain(glow_pos_02 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 + 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
+      ledArray[constrain(glow_pos_02 - 1, 0, NUM_LED - 1)] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
       break;
     case 4:
-      leds[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, led_brightness / 2, LINEARBLEND);
+      ledArray[glow_pos_02] = ColorFromPalette( currentPalette, complement_color + 8, ledBrightness / 2, LINEARBLEND);
       glow_step_02 = 0;
       break;
   }
@@ -877,40 +678,40 @@ void runVisualBounce() {
   for ( int i = 0; i < NUM_LED; i += 1) {
     // Added a bit of randomness to make it less static looking
     // Mostly makes it flash a bit   
-    leds[i] = ColorFromPalette( currentPalette, current_color, led_brightness, LINEARBLEND);
+    ledArray[i] = ColorFromPalette( currentPalette, current_color, ledBrightness, LINEARBLEND);
   }
 
   if(DISPLAY_INDICATOR) {
     for(int i = 0; i < NUM_LED_INDICATOR; i++) {
-      leds_indicator[i] = ColorFromPalette( currentPalette, base_color, led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, base_color, ledBrightness, LINEARBLEND);
     }
   }
 
   // Set lead LED to primary color
-  leds[start_position] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+  ledArray[start_position] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
   if(false) {
-    leds_indicator[start_position_indicator] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+    ledIndicatorArray[start_position_indicator] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
   }
 
   // Set first trailer LED
   if (move_direction) {
     if (start_position - 1 > 0) {
-      leds[start_position - 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position - 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position + 1 < NUM_LED) {
-      leds[start_position + 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position + 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   }
 
   if(false) {
     if(move_direction_indicator) {
        if (start_position_indicator - 1 > 0) {
-        leds_indicator[start_position_indicator - 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+        ledIndicatorArray[start_position_indicator - 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
       }
     } else {
       if (start_position_indicator + 1 < NUM_LED_INDICATOR) {
-        leds_indicator[start_position_indicator + 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+        ledIndicatorArray[start_position_indicator + 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
       }
     }
    }
@@ -918,22 +719,22 @@ void runVisualBounce() {
   // Set the second trailer LED
   if (move_direction) {
     if (start_position - 2 > 0) {
-      leds[start_position - 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position - 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position + 2 < NUM_LED) {
-      leds[start_position + 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position + 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   }
 
     if(false) {
       if(move_direction_indicator) {
          if (start_position_indicator - 2 > 0) {
-          leds_indicator[start_position_indicator - 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+          ledIndicatorArray[start_position_indicator - 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
         }
       } else {
         if (start_position_indicator + 2 < NUM_LED_INDICATOR) {
-          leds_indicator[start_position_indicator + 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+          ledIndicatorArray[start_position_indicator + 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
         }
       }
    }
@@ -978,72 +779,72 @@ void runVisualDoubleBounce() {
     // Added a bit of randomness to make it less static looking
     // Mostly makes it flash a bit
     uint8_t base_color = random(0,5) + COLOR_04;
-    leds[i] = ColorFromPalette( currentPalette, base_color, led_brightness, LINEARBLEND);
-    leds_indicator[i % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, base_color, led_brightness, LINEARBLEND);
+    ledArray[i] = ColorFromPalette( currentPalette, base_color, ledBrightness, LINEARBLEND);
+    ledIndicatorArray[i % NUM_LED_INDICATOR] = ColorFromPalette( currentPalette, base_color, ledBrightness, LINEARBLEND);
   }
 
   // Set lead LED to primary color
-  leds[start_position_1] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-  leds[start_position_2] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+  ledArray[start_position_1] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+  ledArray[start_position_2] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
 
-  leds_indicator[start_position_indicator_1] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+  ledIndicatorArray[start_position_indicator_1] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
 
   // Set first trailer LED
   if (move_direction_1) {
     if (start_position_1 - 1 > 0) {
-      leds[start_position_1 - 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position_1 - 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position_1 + 1 < NUM_LED) {
-      leds[start_position_1 + 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position_1 + 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   }
   if (move_direction_indicator_1) {
     if (start_position_indicator_1 - 1 > 0) {
-      leds_indicator[start_position_indicator_1 - 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledIndicatorArray[start_position_indicator_1 - 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position_indicator_1 + 1 < NUM_LED_INDICATOR) {
-      leds_indicator[start_position_indicator_1 + 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledIndicatorArray[start_position_indicator_1 + 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   }
   
   if (move_direction_2) {
     if (start_position_2 - 1 > 0) {
-      leds[start_position_2 - 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position_2 - 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position_2 + 1 < NUM_LED) {
-      leds[start_position_2 + 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position_2 + 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   }
 
   // Set the second trailer LED
   if (move_direction_1) {
     if (start_position_1 - 2 > 0) {
-      leds[start_position_1 - 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position_1 - 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position_1 + 2 < NUM_LED) {
-      leds[start_position_1 + 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position_1 + 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   }
   if (move_direction_indicator_1) {
     if (start_position_indicator_1 - 2 > 0) {
-      leds_indicator[start_position_indicator_1 - 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledIndicatorArray[start_position_indicator_1 - 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position_indicator_1 + 2 < NUM_LED_INDICATOR) {
-      leds_indicator[start_position_indicator_1 + 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledIndicatorArray[start_position_indicator_1 + 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   }
   if (move_direction_2) {
     if (start_position_2 - 2 > 0) {
-      leds[start_position_2 - 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position_2 - 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position_2 + 2 < NUM_LED) {
-      leds[start_position_2 + 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position_2 + 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   }
 }
@@ -1083,31 +884,31 @@ void runVisualPong() {
   for ( int i = 0; i < NUM_LED; i += 1) {
     // Added a bit of randomness to make it less static looking
     // Mostly makes it flash a bit
-    leds[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 5), led_brightness, LINEARBLEND);
+    ledArray[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 5), ledBrightness, LINEARBLEND);
   }
 
   // Set lead LED to primary color
-  leds[start_position] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+  ledArray[start_position] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
 
   // Set first trailer LED
   if (move_direction) {
     if (start_position - 1 > 0) {
-      leds[start_position - 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position - 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position + 1 < NUM_LED) {
-      leds[start_position + 1] = ColorFromPalette( currentPalette, COLOR_02, led_brightness, LINEARBLEND);
+      ledArray[start_position + 1] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
     }
   }
 
   // Set the second trailer LED
   if (move_direction) {
     if (start_position - 2 > 0) {
-      leds[start_position - 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position - 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   } else {
     if (start_position + 2 < NUM_LED) {
-      leds[start_position + 2] = ColorFromPalette( currentPalette, COLOR_03, led_brightness, LINEARBLEND);
+      ledArray[start_position + 2] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
     }
   }
 }
@@ -1123,12 +924,12 @@ void runVisualSegments() {
     // Remember we are effectively limiting it to 4 colors, which have a gap of 16
     uint8_t current_color_offset = random(0, 4) * 16;
 
-    leds[getSafeIndex(i + start_pos)] = ColorFromPalette( currentPalette, current_color_offset, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_pos + 1)] = ColorFromPalette( currentPalette, current_color_offset, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_pos + 2)] = ColorFromPalette( currentPalette, current_color_offset, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_pos + 3)] = ColorFromPalette( currentPalette, current_color_offset, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_pos + 4)] = ColorFromPalette( currentPalette, current_color_offset, led_brightness, LINEARBLEND);
-    leds[getSafeIndex(i + start_pos + 5)] = ColorFromPalette( currentPalette, current_color_offset, led_brightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_pos)] = ColorFromPalette( currentPalette, current_color_offset, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_pos + 1)] = ColorFromPalette( currentPalette, current_color_offset, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_pos + 2)] = ColorFromPalette( currentPalette, current_color_offset, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_pos + 3)] = ColorFromPalette( currentPalette, current_color_offset, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_pos + 4)] = ColorFromPalette( currentPalette, current_color_offset, ledBrightness, LINEARBLEND);
+    ledArray[getSafeIndex(i + start_pos + 5)] = ColorFromPalette( currentPalette, current_color_offset, ledBrightness, LINEARBLEND);
 
   }
 }
@@ -1153,18 +954,18 @@ void runVisualPing() {
   for ( int i = 0; i < NUM_LED; i++) {
 
     if (i < ledRange) {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
     } else {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     }
   }
 
   for ( int i = 0; i < NUM_LED_INDICATOR; i++) {
 
     if (i < ledRange_indicator) {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
     } else {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     }
   }
 }
@@ -1184,28 +985,28 @@ void runVisualPingCenter() {
   uint8_t ledRange_indicator = map(ledRange, PING_MIN_RANGE, PING_MAX_RANGE, 0, NUM_LED_INDICATOR / 2);
   ledRange = map(ledRange, PING_MIN_RANGE, PING_MAX_RANGE, 0, NUM_LED / 2);
 
-  leds[0] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-  leds_indicator[0]= ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+  ledArray[0] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+  ledIndicatorArray[0]= ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
 
   for ( int i = 0; i < NUM_LED / 2; i++) {
 
     if (i < ledRange) {
-      leds[NUM_LED / 2 + i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-      leds[NUM_LED / 2 - i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+      ledArray[NUM_LED / 2 + i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+      ledArray[NUM_LED / 2 - i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
     } else {
-      leds[NUM_LED / 2 + i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-      leds[NUM_LED / 2 - i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+      ledArray[NUM_LED / 2 + i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+      ledArray[NUM_LED / 2 - i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     }
   }
 
   for ( int i = 0; i < NUM_LED_INDICATOR / 2; i++) {
 
     if (i < ledRange_indicator) {
-      leds_indicator[NUM_LED_INDICATOR / 2 + i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
-      leds_indicator[NUM_LED_INDICATOR / 2 - i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+      ledIndicatorArray[NUM_LED_INDICATOR / 2 + i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
+      ledIndicatorArray[NUM_LED_INDICATOR / 2 - i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
     } else {
-      leds_indicator[NUM_LED_INDICATOR / 2 + i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
-      leds_indicator[NUM_LED_INDICATOR / 2 - i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+      ledIndicatorArray[NUM_LED_INDICATOR / 2 + i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
+      ledIndicatorArray[NUM_LED_INDICATOR / 2 - i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     }
   }
   
@@ -1229,16 +1030,16 @@ void runVisualPingBlob() {
 
   for ( int i = 0; i < NUM_LED; i++) {
     if (i <= ledRange + 2 && i >= ledRange - 2) {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
     } else {
-      leds[i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+      ledArray[i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     }
   }
   for ( int i = 0; i < NUM_LED_INDICATOR; i++) {
     if (i <= ledRange_indicator + 2 && i >= ledRange_indicator - 2) {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_01, led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
     } else {
-      leds_indicator[i] = ColorFromPalette( currentPalette, COLOR_04, led_brightness, LINEARBLEND);
+      ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
     }
   }
 }
