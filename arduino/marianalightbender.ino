@@ -67,6 +67,7 @@ uint8_t visual = 1;
 uint8_t palette = 0;
 uint8_t effect = 0;
 long update_time = millis();
+uint8_t currentLEDPosition = 0;
 
 // BEGIN CODE
 
@@ -124,6 +125,8 @@ void loop() {
     case 'F':
       palette = (int)key - 'A';
       break;
+    default:
+      break;
   }
 
   if (digitalRead(EFFECT_PIN_01) == HIGH) {
@@ -149,7 +152,7 @@ void loop() {
     update_time = millis();
     switch (visual) {
       case 1:
-        runVisualFlow();
+        runVisualFlow(ledArray, NUM_LED, currentLEDPosition);
         break;
       case 2:
         runVisualReverseFlow();
@@ -224,6 +227,38 @@ void loop() {
   FastLED.show();
   FastLED.delay(1);
 }
+
+// ------------ BEGIN VISUALS ------------
+
+// Creates sets of 7 LEDs colored in order from the palette and shifts them 1 each cycle
+void runVisualFlow(CRGB lightsArray, int numLights, uint8_t currentPosition) {
+  if(currentPosition >= numLights) {
+    currentPosition = getSafeIndexFromArray(currentPosition, numLights);
+  } else {
+    currentPosition++;
+  }
+  for(int i = 0; i < 7; i++) {
+    lightsArray[getSafeIndexFromArray(currentPosition) + i] = getColorPaletteVisualFlow(i);
+  }
+}
+
+CRGB getColorPaletteVisualFlow(int index) {
+  switch(index) {
+    case 1:
+    case 2:
+      return COLOR_02;
+    case 3:
+    case 4:
+      return COLOR_03;
+    case 5:
+    case 6:
+      return COLOR_04;
+    case 0:
+    default:
+      return COLOR_01;
+  }
+}
+
 
 // ------------ BEGIN EFFECTS ------------
 void runEffectStrobe() {
@@ -366,41 +401,6 @@ void runVisualPulse() {
       ledIndicatorArray[i] = ColorFromPalette( currentPalette, COLOR_04 + random(0, 2), ledBrightness - (ledBrightness / 4), LINEARBLEND);
     }
 
-  }
-}
-
-// Creates sets of 7 LEDs colored in order from the palette and shifts them 1 each cycle
-void runVisualFlow() {
-  // Create static var to hand current position
-  static uint8_t start_position = 0;
-
-  // Update start position to "move" LEDs. In this case just a simple shift
-  if (start_position > NUM_LED) {
-    start_position = getSafeIndex(start_position);
-  } else {
-    start_position += 1;
-  }
-  uint8_t current_color = COLOR_01;
-
-  // The visualizer logic goes here
-  int j = 0;
-  for ( int i = 0; i < NUM_LED; i += 7) {
-    ledArray[getSafeIndex(i + start_position)] = ColorFromPalette( currentPalette, COLOR_01, ledBrightness, LINEARBLEND);
-    ledArray[getSafeIndex(i + start_position + 1)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
-    ledArray[getSafeIndex(i + start_position + 2)] = ColorFromPalette( currentPalette, COLOR_02, ledBrightness, LINEARBLEND);
-    ledArray[getSafeIndex(i + start_position + 3)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
-    ledArray[getSafeIndex(i + start_position + 4)] = ColorFromPalette( currentPalette, COLOR_03, ledBrightness, LINEARBLEND);
-    ledArray[getSafeIndex(i + start_position + 5)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
-    ledArray[getSafeIndex(i + start_position + 6)] = ColorFromPalette( currentPalette, COLOR_04, ledBrightness, LINEARBLEND);
-    if(DISPLAY_INDICATOR == true) {
-      ledIndicatorArray[(j + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_01 , ledBrightness, LINEARBLEND);
-      ledIndicatorArray[(j + 1 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , ledBrightness, LINEARBLEND);
-      ledIndicatorArray[(j + 2 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_02 , ledBrightness, LINEARBLEND);
-      ledIndicatorArray[(j + 3 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , ledBrightness, LINEARBLEND);
-      ledIndicatorArray[(j + 4 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_03 , ledBrightness, LINEARBLEND);
-      ledIndicatorArray[(j + 5 + start_position) % NUM_LED_INDICATOR] = ColorFromPalette(currentPalette, COLOR_04 , ledBrightness, LINEARBLEND);
-      j += 1;
-    }
   }
 }
 
@@ -1046,6 +1046,11 @@ void runVisualPingBlob() {
 uint8_t getSafeIndex(uint8_t index) {
   return (index % NUM_LED);
 }
+
+uint8_t getSafeIndexFromArray(uint8_t index, int numLength) {
+  return (index % numLength);
+}
+
 // Gets an index we can safely assign to the led array, makes overflow "wrap" around
 uint8_t getSafeIndexFirstHalf(uint8_t index) {
   return (index % (NUM_LED / 2));
